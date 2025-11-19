@@ -50,19 +50,27 @@ const KPIOverview = ({ department }: KPIOverviewProps) => {
       if (data && data.length > 0) {
         const totalProduction = data.reduce((sum, record) => sum + record.total_production, 0);
         const totalActual = data.reduce((sum, record) => sum + record.actual_defects, 0);
-        const totalExpected = data.reduce((sum, record) => sum + record.expected_defects, 0);
+        
+        // Calculate expected defects from the percentage (expected_defects is stored as %)
+        const totalExpectedCalculated = data.reduce((sum, record) => {
+          const expectedForRecord = (record.total_production * Number(record.expected_defects)) / 100;
+          return sum + expectedForRecord;
+        }, 0);
+        
+        // Calculate the average expected percentage
+        const totalExpectedPercentage = data.reduce((sum, record) => sum + Number(record.expected_defects), 0);
+        const avgExpectedPercentage = data.length > 0 ? totalExpectedPercentage / data.length : 0;
         
         const actualPercentage = totalProduction > 0 ? (totalActual / totalProduction) * 100 : 0;
-        const expectedPercentage = totalProduction > 0 ? (totalExpected / totalProduction) * 100 : 0;
 
         setStats({
           totalProducts: totalProduction,
           actualDefects: totalActual,
-          expectedDefects: totalExpected,
+          expectedDefects: totalExpectedCalculated,
           actualDefectsPercentage: actualPercentage,
-          expectedDefectsPercentage: expectedPercentage,
-          defectsGap: totalActual - totalExpected,
-          percentageGap: actualPercentage - expectedPercentage,
+          expectedDefectsPercentage: avgExpectedPercentage,
+          defectsGap: totalActual - totalExpectedCalculated,
+          percentageGap: actualPercentage - avgExpectedPercentage,
         });
       }
     } catch (error) {
