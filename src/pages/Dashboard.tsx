@@ -16,6 +16,8 @@ import {
   Plus
 } from "lucide-react";
 import KPIOverview from "@/components/dashboard/KPIOverview";
+import { AdminKPIForm } from "@/components/dashboard/AdminKPIForm";
+import { QualityLeaderKPIForm } from "@/components/dashboard/QualityLeaderKPIForm";
 
 interface Profile {
   id: string;
@@ -24,9 +26,14 @@ interface Profile {
   department: string | null;
 }
 
+interface UserRole {
+  role: string;
+}
+
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -67,6 +74,17 @@ const Dashboard = () => {
 
       if (error) throw error;
       setProfile(data);
+      
+      // Fetch user role
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user?.id)
+        .single();
+      
+      if (!roleError && roleData) {
+        setUserRole(roleData.role);
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -157,6 +175,18 @@ const Dashboard = () => {
           <h3 className="text-2xl font-bold text-foreground mb-4">KPI Performance Overview</h3>
           <KPIOverview department={profile?.department} />
         </div>
+
+        {/* KPI Entry Form - Role Based */}
+        {userRole && profile?.department && (
+          <div className="mb-8">
+            <h3 className="text-2xl font-bold text-foreground mb-4">KPI Entry</h3>
+            {userRole === "admin" ? (
+              <AdminKPIForm userId={user?.id || ""} userDepartment={profile.department} />
+            ) : userRole === "quality_circle_leader" ? (
+              <QualityLeaderKPIForm userId={user?.id || ""} userDepartment={profile.department} />
+            ) : null}
+          </div>
+        )}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">

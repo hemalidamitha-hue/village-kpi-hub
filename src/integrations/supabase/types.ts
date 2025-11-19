@@ -29,6 +29,7 @@ export type Database = {
           reason_for_defects: string | null
           responsible_officer: string | null
           status: Database["public"]["Enums"]["kpi_status"] | null
+          total_production: number
           updated_at: string | null
           variance: number | null
         }
@@ -46,6 +47,7 @@ export type Database = {
           reason_for_defects?: string | null
           responsible_officer?: string | null
           status?: Database["public"]["Enums"]["kpi_status"] | null
+          total_production: number
           updated_at?: string | null
           variance?: number | null
         }
@@ -63,6 +65,7 @@ export type Database = {
           reason_for_defects?: string | null
           responsible_officer?: string | null
           status?: Database["public"]["Enums"]["kpi_status"] | null
+          total_production?: number
           updated_at?: string | null
           variance?: number | null
         }
