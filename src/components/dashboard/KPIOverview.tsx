@@ -48,18 +48,15 @@ const KPIOverview = ({ department }: KPIOverviewProps) => {
       if (error) throw error;
 
       if (data && data.length > 0) {
+        const totalProduction = data.reduce((sum, record) => sum + record.total_production, 0);
         const totalActual = data.reduce((sum, record) => sum + record.actual_defects, 0);
         const totalExpected = data.reduce((sum, record) => sum + record.expected_defects, 0);
         
-        // Assuming total products is a sum that makes sense in context
-        // You may want to adjust this calculation based on your business logic
-        const totalProducts = totalExpected; // Or use a different calculation
-        
-        const actualPercentage = totalProducts > 0 ? (totalActual / totalProducts) * 100 : 0;
-        const expectedPercentage = totalProducts > 0 ? (totalExpected / totalProducts) * 100 : 0;
+        const actualPercentage = totalProduction > 0 ? (totalActual / totalProduction) * 100 : 0;
+        const expectedPercentage = totalProduction > 0 ? (totalExpected / totalProduction) * 100 : 0;
 
         setStats({
-          totalProducts,
+          totalProducts: totalProduction,
           actualDefects: totalActual,
           expectedDefects: totalExpected,
           actualDefectsPercentage: actualPercentage,

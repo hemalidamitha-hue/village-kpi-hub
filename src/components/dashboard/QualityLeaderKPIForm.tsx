@@ -40,6 +40,7 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
 
       const defectPercentage = calculateDefectPercentage(actual, total);
 
+      // Insert without defect_percentage - the trigger will calculate it
       const { error } = await supabase.from("kpi_records").insert({
         department: userDepartment as any,
         total_production: total,
