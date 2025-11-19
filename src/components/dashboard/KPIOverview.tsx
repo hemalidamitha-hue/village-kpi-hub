@@ -39,7 +39,8 @@ const KPIOverview = ({ department }: KPIOverviewProps) => {
       let query = supabase
         .from("kpi_records")
         .select("*")
-        .order("entry_date", { ascending: false });
+        .order("entry_date", { ascending: false })
+        .order("created_at", { ascending: false });
 
       if (department) {
         query = query.eq("department", department as any);
