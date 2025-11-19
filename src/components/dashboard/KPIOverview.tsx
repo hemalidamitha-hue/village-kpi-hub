@@ -50,41 +50,28 @@ const KPIOverview = ({ department }: KPIOverviewProps) => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        // Get the most recent month from the latest entry
-        const latestDate = new Date(data[0].entry_date);
-        const latestYear = latestDate.getFullYear();
-        const latestMonth = latestDate.getMonth();
+        // Use only the latest KPI record (most recent entry_date)
+        const latestRecord = data[0];
 
-        // Filter data to only include entries from the most recent month
-        const currentMonthData = data.filter(record => {
-          const recordDate = new Date(record.entry_date);
-          return recordDate.getFullYear() === latestYear && 
-                 recordDate.getMonth() === latestMonth;
-        });
+        const totalProduction = latestRecord.total_production;
+        const totalActual = latestRecord.actual_defects;
 
-        const totalProduction = currentMonthData.reduce((sum, record) => sum + record.total_production, 0);
-        const totalActual = currentMonthData.reduce((sum, record) => sum + record.actual_defects, 0);
-        
-        // Calculate expected defects from the percentage (expected_defects is stored as %)
-        const totalExpectedCalculated = currentMonthData.reduce((sum, record) => {
-          const expectedForRecord = (record.total_production * Number(record.expected_defects)) / 100;
-          return sum + expectedForRecord;
-        }, 0);
-        
-        // Calculate the average expected percentage
-        const totalExpectedPercentage = currentMonthData.reduce((sum, record) => sum + Number(record.expected_defects), 0);
-        const avgExpectedPercentage = currentMonthData.length > 0 ? totalExpectedPercentage / currentMonthData.length : 0;
-        
-        const actualPercentage = totalProduction > 0 ? (totalActual / totalProduction) * 100 : 0;
+        // expected_defects is stored as a percentage value
+        const expectedPercentage = Number(latestRecord.expected_defects) || 0;
+        const expectedDefectsCount =
+          totalProduction > 0 ? (totalProduction * expectedPercentage) / 100 : 0;
+
+        const actualPercentage =
+          totalProduction > 0 ? (totalActual / totalProduction) * 100 : 0;
 
         setStats({
           totalProducts: totalProduction,
           actualDefects: totalActual,
-          expectedDefects: totalExpectedCalculated,
+          expectedDefects: expectedDefectsCount,
           actualDefectsPercentage: actualPercentage,
-          expectedDefectsPercentage: avgExpectedPercentage,
-          defectsGap: totalActual - totalExpectedCalculated,
-          percentageGap: actualPercentage - avgExpectedPercentage,
+          expectedDefectsPercentage: expectedPercentage,
+          defectsGap: totalActual - expectedDefectsCount,
+          percentageGap: actualPercentage - expectedPercentage,
         });
       }
     } catch (error) {
