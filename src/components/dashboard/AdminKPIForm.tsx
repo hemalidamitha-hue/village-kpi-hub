@@ -70,13 +70,10 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
         description: "Your KPI record has been submitted successfully.",
       });
 
-      // Reset form
-      setTotalProduction("");
-      setExpectedDefects("");
-      setActualDefects("");
-      setReasonForDefects("");
-      setCorrectiveAction("");
-      setResponsibleOfficer("");
+      // Refresh the page to show updated data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       toast({
         title: "Error",

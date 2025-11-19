@@ -45,8 +45,6 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
         total_production: total,
         expected_defects: 0, // Quality leaders don't set expected defects
         actual_defects: actual,
-        defect_percentage: defectPercentage,
-        variance: null, // No variance calculation without expected defects
         reason_for_defects: reasonForDefects,
         corrective_action: correctiveAction,
         responsible_officer: responsibleOfficer,
@@ -62,12 +60,10 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
         description: "Your KPI record has been submitted successfully.",
       });
 
-      // Reset form
-      setTotalProduction("");
-      setActualDefects("");
-      setReasonForDefects("");
-      setCorrectiveAction("");
-      setResponsibleOfficer("");
+      // Refresh the page to show updated data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error: any) {
       toast({
         title: "Error",
