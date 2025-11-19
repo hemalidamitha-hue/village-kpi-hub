@@ -15,6 +15,7 @@ import {
   FileText,
   Plus
 } from "lucide-react";
+import KPIOverview from "@/components/dashboard/KPIOverview";
 
 interface Profile {
   id: string;
@@ -149,6 +150,12 @@ const Dashboard = () => {
               </p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* KPI Overview Charts */}
+        <div className="mb-8">
+          <h3 className="text-2xl font-bold text-foreground mb-4">KPI Performance Overview</h3>
+          <KPIOverview department={profile?.department} />
         </div>
 
         {/* Quick Stats */}
