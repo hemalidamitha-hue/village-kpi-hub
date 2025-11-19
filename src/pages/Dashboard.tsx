@@ -18,6 +18,8 @@ import {
 import KPIOverview from "@/components/dashboard/KPIOverview";
 import { AdminKPIForm } from "@/components/dashboard/AdminKPIForm";
 import { QualityLeaderKPIForm } from "@/components/dashboard/QualityLeaderKPIForm";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Constants } from "@/integrations/supabase/types";
 
 interface Profile {
   id: string;
@@ -34,6 +36,8 @@ const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [departmentSelection, setDepartmentSelection] = useState<string>("");
+  const [savingDepartment, setSavingDepartment] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -96,27 +100,28 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
-  };
+const handleLogout = async () => {
+  await supabase.auth.signOut();
+  navigate("/auth");
+};
 
-  const getDepartmentName = (dept: string | null) => {
-    if (!dept) return "No Department";
-    return dept
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+const getDepartmentName = (dept: string | null) => {
+  if (!dept) return "No Department";
+  return dept
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
-  const getRoleName = (role: string) => {
-    return role
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ");
-  };
+const getRoleName = (role: string) => {
+  return role
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+};
 
-  if (loading) {
+const handleSaveDepartment = async () => {
+  if (!departmentSelection) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -140,7 +145,7 @@ const Dashboard = () => {
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground">{getRoleName(profile?.role || "")}</p>
+                <p className="text-xs text-muted-foreground">{getRoleName(userRole || profile?.role || "")}</p>
               </div>
               <Button
                 variant="outline"
@@ -164,7 +169,7 @@ const Dashboard = () => {
             <CardContent className="pt-6">
               <h2 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name}!</h2>
               <p className="text-primary-foreground/90">
-                {getDepartmentName(profile?.department)} • {getRoleName(profile?.role || "")}
+                {getDepartmentName(profile?.department)} • {getRoleName(userRole || profile?.role || "")}
               </p>
             </CardContent>
           </Card>
