@@ -303,6 +303,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_department: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["department_type"]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["user_role"]
