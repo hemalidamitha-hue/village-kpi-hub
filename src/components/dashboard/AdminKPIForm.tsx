@@ -50,6 +50,7 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
       const defectPercentage = calculateDefectPercentage(actual, total);
       const variance = calculateVariance(expected, actual, total);
 
+      // Insert without defect_percentage and variance - the trigger will calculate them
       const { error } = await supabase.from("kpi_records").insert({
         department: userDepartment as any,
         total_production: total,

@@ -18,6 +18,8 @@ import {
 import KPIOverview from "@/components/dashboard/KPIOverview";
 import { AdminKPIForm } from "@/components/dashboard/AdminKPIForm";
 import { QualityLeaderKPIForm } from "@/components/dashboard/QualityLeaderKPIForm";
+import VarianceChart from "@/components/dashboard/VarianceChart";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Constants } from "@/integrations/supabase/types";
 
@@ -249,8 +251,54 @@ const Dashboard = () => {
 
         {/* KPI Overview Charts */}
         <div className="mb-8">
-          <h3 className="text-2xl font-bold text-foreground mb-4">KPI Performance Overview</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-foreground">KPI Performance Overview</h3>
+            {effectiveRole === "admin" && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm">
+                    Reset All Data
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete all KPI records from the database.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={async () => {
+                      try {
+                        const { error } = await supabase.from("kpi_records").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+                        if (error) throw error;
+                        toast({
+                          title: "Success",
+                          description: "All KPI records have been deleted.",
+                        });
+                        window.location.reload();
+                      } catch (error: any) {
+                        toast({
+                          title: "Error",
+                          description: error.message,
+                          variant: "destructive",
+                        });
+                      }
+                    }}>
+                      Delete All Records
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
           <KPIOverview department={profile?.department} />
+        </div>
+
+        {/* Variance Chart */}
+        <div className="mb-8">
+          <VarianceChart department={profile?.department} />
         </div>
 
         {/* KPI Entry Form - Role Based */}
