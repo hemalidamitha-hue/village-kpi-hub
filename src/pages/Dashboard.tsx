@@ -28,10 +28,6 @@ interface Profile {
   department: string | null;
 }
 
-interface UserRole {
-  role: string;
-}
-
 const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -44,7 +40,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_event, session) => {
         setUser(session?.user ?? null);
         if (!session) {
           navigate("/auth");
@@ -72,22 +68,22 @@ const Dashboard = () => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, role, department")
         .eq("id", user?.id)
         .single();
 
       if (error) throw error;
-      setProfile(data);
-      
+      setProfile(data as Profile);
+
       // Fetch user role
       const { data: roleData, error: roleError } = await supabase
         .from("user_roles")
         .select("role")
         .eq("user_id", user?.id)
         .single();
-      
+
       if (!roleError && roleData) {
-        setUserRole(roleData.role);
+        setUserRole(roleData.role as string);
       }
     } catch (error: any) {
       toast({
@@ -100,28 +96,63 @@ const Dashboard = () => {
     }
   };
 
-const handleLogout = async () => {
-  await supabase.auth.signOut();
-  navigate("/auth");
-};
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/auth");
+  };
 
-const getDepartmentName = (dept: string | null) => {
-  if (!dept) return "No Department";
-  return dept
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+  const getDepartmentName = (dept: string | null) => {
+    if (!dept) return "No Department";
+    return dept
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
-const getRoleName = (role: string) => {
-  return role
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-};
+  const getRoleName = (role: string) => {
+    return role
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
-const handleSaveDepartment = async () => {
-  if (!departmentSelection) {
+  const handleSaveDepartment = async () => {
+    if (!departmentSelection) {
+      toast({
+        title: "Select department",
+        description: "Please select your department before continuing.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setSavingDepartment(true);
+      const { error } = await supabase
+        .from("profiles")
+        .update({ department: departmentSelection as any })
+        .eq("id", user?.id);
+
+      if (error) throw error;
+
+      setProfile((prev) => (prev ? { ...prev, department: departmentSelection } : prev));
+
+      toast({
+        title: "Department saved",
+        description: "Your department has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSavingDepartment(false);
+    }
+  };
+
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
@@ -131,6 +162,8 @@ const handleSaveDepartment = async () => {
       </div>
     );
   }
+
+  const effectiveRole = userRole || profile?.role || "";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-accent/5">
@@ -145,7 +178,7 @@ const handleSaveDepartment = async () => {
             <div className="flex items-center gap-4">
               <div className="text-right hidden sm:block">
                 <p className="text-sm font-medium text-foreground">{profile?.full_name}</p>
-                <p className="text-xs text-muted-foreground">{getRoleName(userRole || profile?.role || "")}</p>
+                <p className="text-xs text-muted-foreground">{getRoleName(effectiveRole)}</p>
               </div>
               <Button
                 variant="outline"
@@ -169,11 +202,50 @@ const handleSaveDepartment = async () => {
             <CardContent className="pt-6">
               <h2 className="text-3xl font-bold mb-2">Welcome back, {profile?.full_name}!</h2>
               <p className="text-primary-foreground/90">
-                {getDepartmentName(profile?.department)} • {getRoleName(userRole || profile?.role || "")}
+                {getDepartmentName(profile?.department)} • {getRoleName(effectiveRole)}
               </p>
             </CardContent>
           </Card>
         </div>
+
+        {/* Department Setup */}
+        {!profile?.department && (
+          <div className="mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Set Your Department</CardTitle>
+                <CardDescription>
+                  Select your department to enable KPI entry and department-specific analytics.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex flex-col sm:flex-row gap-4 items-center">
+                <div className="w-full sm:w-1/2">
+                  <Select
+                    value={departmentSelection}
+                    onValueChange={setDepartmentSelection}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Constants.public.Enums.department_type.map((dept) => (
+                        <SelectItem key={dept} value={dept}>
+                          {getDepartmentName(dept)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button
+                  onClick={handleSaveDepartment}
+                  disabled={savingDepartment || !departmentSelection}
+                >
+                  {savingDepartment ? "Saving..." : "Save Department"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* KPI Overview Charts */}
         <div className="mb-8">
@@ -182,12 +254,12 @@ const handleSaveDepartment = async () => {
         </div>
 
         {/* KPI Entry Form - Role Based */}
-        {userRole && profile?.department && (
+        {effectiveRole && profile?.department && (
           <div className="mb-8">
             <h3 className="text-2xl font-bold text-foreground mb-4">KPI Entry</h3>
-            {userRole === "admin" ? (
+            {effectiveRole === "admin" ? (
               <AdminKPIForm userId={user?.id || ""} userDepartment={profile.department} />
-            ) : userRole === "quality_circle_leader" ? (
+            ) : effectiveRole === "quality_circle_leader" ? (
               <QualityLeaderKPIForm userId={user?.id || ""} userDepartment={profile.department} />
             ) : null}
           </div>
@@ -281,7 +353,7 @@ const handleSaveDepartment = async () => {
                 onClick={() => navigate("/recognition")}
               >
                 <Award className="w-4 h-4" />
-                Recognition Board
+                Recognition & Rewards
               </Button>
             </CardContent>
           </Card>
@@ -290,15 +362,19 @@ const handleSaveDepartment = async () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <FileText className="w-5 h-5" />
-                Recent Activity
+                Reports & Documentation
               </CardTitle>
-              <CardDescription>Latest updates and notifications</CardDescription>
+              <CardDescription>Access reports and meeting notes</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-muted-foreground">
-                <p>No recent activity</p>
-                <p className="text-sm mt-2">Start by entering your KPI data</p>
-              </div>
+            <CardContent className="space-y-3">
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <FileText className="w-4 h-4" />
+                Monthly KPI Report
+              </Button>
+              <Button variant="outline" className="w-full justify-start gap-2">
+                <Users className="w-4 h-4" />
+                Quality Circle Minutes
+              </Button>
             </CardContent>
           </Card>
         </div>
