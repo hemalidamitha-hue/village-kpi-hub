@@ -19,6 +19,7 @@ import KPIOverview from "@/components/dashboard/KPIOverview";
 import { AdminKPIForm } from "@/components/dashboard/AdminKPIForm";
 import { QualityLeaderKPIForm } from "@/components/dashboard/QualityLeaderKPIForm";
 import VarianceChart from "@/components/dashboard/VarianceChart";
+import { KPIRecordsTable } from "@/components/dashboard/KPIRecordsTable";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Constants } from "@/integrations/supabase/types";
@@ -299,6 +300,11 @@ const Dashboard = () => {
         {/* Variance Chart */}
         <div className="mb-8">
           <VarianceChart department={profile?.department} />
+        </div>
+
+        {/* KPI Records Table */}
+        <div className="mb-8">
+          <KPIRecordsTable department={profile?.department} userRole={effectiveRole} />
         </div>
 
         {/* KPI Entry Form - Role Based */}
