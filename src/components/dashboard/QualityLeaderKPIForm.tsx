@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +18,33 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
   const [reasonForDefects, setReasonForDefects] = useState("");
   const [correctiveAction, setCorrectiveAction] = useState("");
   const [responsibleOfficer, setResponsibleOfficer] = useState("");
+  const [expectedPercentage, setExpectedPercentage] = useState(0);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchExpectedPercentage();
+  }, [userDepartment]);
+
+  const fetchExpectedPercentage = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("kpi_records")
+        .select("expected_defects, total_production")
+        .eq("department", userDepartment as any);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        // Calculate average expected percentage from department records
+        const totalExpectedPercentage = data.reduce((sum, record) => sum + Number(record.expected_defects), 0);
+        const avgExpected = totalExpectedPercentage / data.length;
+        setExpectedPercentage(avgExpected);
+      }
+    } catch (error) {
+      console.error("Error fetching expected percentage:", error);
+    }
+  };
 
   const calculateDefectPercentage = (actual: number, total: number): number => {
     if (total === 0) return 0;
@@ -44,7 +69,7 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
       const { error } = await supabase.from("kpi_records").insert({
         department: userDepartment as any,
         total_production: total,
-        expected_defects: 0, // Quality leaders don't set expected defects
+        expected_defects: expectedPercentage, // Use department's expected percentage
         actual_defects: actual,
         reason_for_defects: reasonForDefects,
         corrective_action: correctiveAction,
@@ -79,7 +104,8 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
   const total = parseInt(totalProduction) || 0;
   const actual = parseInt(actualDefects) || 0;
   const defectPercentage = total > 0 ? calculateDefectPercentage(actual, total).toFixed(2) : "0.00";
-  const isPositiveGap = parseFloat(defectPercentage) > 0;
+  const gapValue = parseFloat(defectPercentage) - expectedPercentage;
+  const isPositiveGap = gapValue > 0; // Positive gap means actual > expected (bad)
 
   return (
     <Card>
@@ -121,11 +147,18 @@ export const QualityLeaderKPIForm = ({ userId, userDepartment }: QualityLeaderKP
           </div>
 
           <div className="space-y-2">
-            <Label>KPI Gap Status</Label>
-            <div className={`h-10 rounded-md border border-input px-3 py-2 text-sm flex items-center ${
+            <Label>Expected Defects Percentage</Label>
+            <div className="h-10 rounded-md border border-input bg-muted px-3 py-2 text-sm">
+              {expectedPercentage.toFixed(2)}%
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Gap (Variance)</Label>
+            <div className={`h-10 rounded-md border border-input px-3 py-2 text-sm ${
               isPositiveGap ? "bg-destructive/10 text-destructive" : "bg-green-500/10 text-green-600"
             }`}>
-              {isPositiveGap ? "⚠️ Negative Gap - Action Required" : "✓ Positive Gap - On Track"}
+              {gapValue > 0 ? '+' : ''}{gapValue.toFixed(2)}% {isPositiveGap ? "(Above Expected)" : "(Below Expected)"}
             </div>
           </div>
 
