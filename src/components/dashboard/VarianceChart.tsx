@@ -34,10 +34,14 @@ const VarianceChart = ({ department }: VarianceChartProps) => {
 
       if (data && data.length > 0) {
         const formattedData = data.reverse().map((record) => ({
-          date: new Date(record.entry_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          expected: record.expected_defects,
-          actual: record.actual_defects,
-          variance: record.variance || 0,
+          date: new Date(record.entry_date).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          }),
+          // expected_defects is stored as a percentage, defect_percentage is the actual percentage
+          expected: Number(record.expected_defects ?? 0),
+          actual: Number(record.defect_percentage ?? 0),
+          variance: Number(record.variance ?? 0),
         }));
         setChartData(formattedData);
       }
@@ -65,15 +69,15 @@ const VarianceChart = ({ department }: VarianceChartProps) => {
 
   const chartConfig = {
     expected: {
-      label: "Expected Defects",
+      label: "Expected Defects (%)",
       color: "hsl(var(--primary))",
     },
     actual: {
-      label: "Actual Defects",
+      label: "Actual Defects (%)",
       color: "hsl(var(--destructive))",
     },
     variance: {
-      label: "Variance",
+      label: "Variance (pp)",
       color: "hsl(var(--accent))",
     },
   };
@@ -111,19 +115,19 @@ const VarianceChart = ({ department }: VarianceChartProps) => {
                   dataKey="expected" 
                   fill="hsl(var(--primary))" 
                   radius={[4, 4, 0, 0]}
-                  name="Expected Defects"
+                  name="Expected Defects (%)"
                 />
                 <Bar 
                   dataKey="actual" 
                   fill="hsl(var(--destructive))" 
                   radius={[4, 4, 0, 0]}
-                  name="Actual Defects"
+                  name="Actual Defects (%)"
                 />
                 <Bar 
                   dataKey="variance" 
                   fill="hsl(var(--accent))" 
                   radius={[4, 4, 0, 0]}
-                  name="Variance (%)"
+                  name="Variance (percentage points)"
                 />
               </BarChart>
             </ResponsiveContainer>
