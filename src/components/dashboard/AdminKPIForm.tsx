@@ -30,9 +30,8 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
 
   const calculateVariance = (expected: number, actual: number, total: number): number => {
     if (total === 0) return 0;
-    const expectedPercentage = (expected / total) * 100;
     const actualPercentage = (actual / total) * 100;
-    return parseFloat((actualPercentage - expectedPercentage).toFixed(2));
+    return parseFloat((actualPercentage - expected).toFixed(2));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
