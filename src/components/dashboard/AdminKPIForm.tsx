@@ -118,7 +118,7 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="expectedDefects">Expected Defects (Quantity)</Label>
+            <Label htmlFor="expectedDefects">Expected Percentage</Label>
             <Input
               id="expectedDefects"
               type="number"
@@ -126,6 +126,7 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
               onChange={(e) => setExpectedDefects(e.target.value)}
               required
               min="0"
+              step="0.01"
             />
           </div>
 
