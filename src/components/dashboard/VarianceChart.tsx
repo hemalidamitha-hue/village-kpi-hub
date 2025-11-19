@@ -21,8 +21,7 @@ const VarianceChart = ({ department }: VarianceChartProps) => {
       let query = supabase
         .from("kpi_records")
         .select("*")
-        .order("entry_date", { ascending: false })
-        .limit(10);
+        .order("entry_date", { ascending: false });
 
       if (department) {
         query = query.eq("department", department as any);
@@ -33,7 +32,19 @@ const VarianceChart = ({ department }: VarianceChartProps) => {
       if (error) throw error;
 
       if (data && data.length > 0) {
-        const formattedData = data.reverse().map((record) => ({
+        // Get the most recent month from the latest entry
+        const latestDate = new Date(data[0].entry_date);
+        const latestYear = latestDate.getFullYear();
+        const latestMonth = latestDate.getMonth();
+
+        // Filter data to only include entries from the most recent month
+        const currentMonthData = data.filter(record => {
+          const recordDate = new Date(record.entry_date);
+          return recordDate.getFullYear() === latestYear && 
+                 recordDate.getMonth() === latestMonth;
+        });
+
+        const formattedData = currentMonthData.reverse().map((record) => ({
           date: new Date(record.entry_date).toLocaleDateString("en-US", {
             month: "short",
             day: "numeric",
