@@ -55,8 +55,6 @@ export const AdminKPIForm = ({ userId, userDepartment }: AdminKPIFormProps) => {
         total_production: total,
         expected_defects: expected,
         actual_defects: actual,
-        defect_percentage: defectPercentage,
-        variance: variance,
         reason_for_defects: reasonForDefects,
         corrective_action: correctiveAction,
         responsible_officer: responsibleOfficer,
