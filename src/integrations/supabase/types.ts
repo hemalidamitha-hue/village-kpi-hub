@@ -323,7 +323,7 @@ export type Database = {
         | "quality_assurance"
         | "research_development"
         | "production"
-      kpi_status: "pending" | "completed"
+      kpi_status: "pending" | "completed" | "approved" | "rejected"
       user_role:
         | "admin"
         | "department_head"
@@ -464,7 +464,7 @@ export const Constants = {
         "research_development",
         "production",
       ],
-      kpi_status: ["pending", "completed"],
+      kpi_status: ["pending", "completed", "approved", "rejected"],
       user_role: [
         "admin",
         "department_head",
